@@ -311,6 +311,7 @@ dependencies = [
  "console_error_panic_hook",
  "futures",
  "getrandom",
+ "js-sys",
  "rand",
  "serde",
  "serde-wasm-bindgen",
