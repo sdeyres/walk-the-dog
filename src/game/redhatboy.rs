@@ -4,7 +4,10 @@ use red_hat_boy_states::{
 };
 use web_sys::HtmlImageElement;
 
-use crate::engine::{Rect, Renderer};
+use crate::engine::{
+    audio::{Audio, Sound},
+    Rect, Renderer,
+};
 
 use super::{Cell, Sheet};
 
@@ -15,16 +18,25 @@ pub struct RedHatBoy {
 }
 
 impl RedHatBoy {
-    pub fn new(sheet: Sheet, image: HtmlImageElement) -> Self {
+    pub fn new(sheet: Sheet, image: HtmlImageElement, audio: Audio, jump_sound: Sound) -> Self {
         RedHatBoy {
-            state_machine: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            state_machine: RedHatBoyStateMachine::Idle(RedHatBoyState::new(audio, jump_sound)),
             sprite_sheet: sheet,
             image,
         }
     }
 
+    pub fn reset(boy: Self) -> Self {
+        RedHatBoy::new(
+            boy.sprite_sheet,
+            boy.image,
+            boy.state_machine.context().audio.clone(),
+            boy.state_machine.context().jump_sound.clone(),
+        )
+    }
+
     pub fn update(&mut self) {
-        self.state_machine = self.state_machine.update();
+        self.state_machine = self.state_machine.clone().update();
     }
 
     pub fn draw(&self, renderer: &Renderer) {
@@ -77,24 +89,28 @@ impl RedHatBoy {
         self.state_machine.context().velocity.y
     }
 
+    pub fn knocked_out(&self) -> bool {
+        self.state_machine.knocked_out()
+    }
+
     pub fn jump(&mut self) {
-        self.state_machine = self.state_machine.transition(Event::Jump);
+        self.state_machine = self.state_machine.clone().transition(Event::Jump);
     }
 
     pub fn knock_out(&mut self) {
-        self.state_machine = self.state_machine.transition(Event::KnockOut);
+        self.state_machine = self.state_machine.clone().transition(Event::KnockOut);
     }
 
     pub fn land_on(&mut self, position: i16) {
-        self.state_machine = self.state_machine.transition(Event::Land(position));
+        self.state_machine = self.state_machine.clone().transition(Event::Land(position));
     }
 
     pub fn run(&mut self) {
-        self.state_machine = self.state_machine.transition(Event::Run);
+        self.state_machine = self.state_machine.clone().transition(Event::Run);
     }
 
     pub fn slide(&mut self) {
-        self.state_machine = self.state_machine.transition(Event::Slide);
+        self.state_machine = self.state_machine.clone().transition(Event::Slide);
     }
 
     fn frame_name(&self) -> String {
@@ -110,7 +126,7 @@ impl RedHatBoy {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 enum RedHatBoyStateMachine {
     Falling(RedHatBoyState<Falling>),
     Idle(RedHatBoyState<Idle>),
@@ -194,7 +210,7 @@ pub enum Event {
 
 impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
-        match (self, event) {
+        match (self.clone(), event) {
             (RedHatBoyStateMachine::Falling(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
@@ -244,10 +260,20 @@ impl RedHatBoyStateMachine {
     fn update(self) -> Self {
         self.transition(Event::Update)
     }
+
+    fn knocked_out(&self) -> bool {
+        matches!(self, RedHatBoyStateMachine::KnockedOut(_))
+    }
 }
 
 mod red_hat_boy_states {
-    use crate::{engine::Point, game::HEIGHT};
+    use crate::{
+        engine::{
+            audio::{Audio, Sound},
+            Point,
+        },
+        game::HEIGHT,
+    };
 
     const FLOOR: i16 = 479;
     const PLAYER_HEIGHT: i16 = HEIGHT - FLOOR;
@@ -269,17 +295,19 @@ mod red_hat_boy_states {
     const SLIDING_FRAME_NAME: &str = "Slide";
     const SLIDING_FRAMES: u8 = 14;
 
-    #[derive(Clone, Copy)]
+    #[derive(Clone)]
     pub struct RedHatBoyState<S> {
         context: RedHatBoyContext,
         _state: S,
     }
 
-    #[derive(Clone, Copy)]
+    #[derive(Clone)]
     pub struct RedHatBoyContext {
         pub frame: u8,
         pub position: Point,
         pub velocity: Point,
+        pub audio: Audio,
+        pub jump_sound: Sound,
     }
 
     impl RedHatBoyContext {
@@ -325,6 +353,13 @@ mod red_hat_boy_states {
         fn stop(mut self) -> Self {
             self.velocity.x = 0;
             self.velocity.y = 0;
+            self
+        }
+
+        fn play_jump_sound(self) -> Self {
+            if let Err(err) = self.audio.play_sound(&self.jump_sound) {
+                log!("Error playing jump sound {:?}", err);
+            }
             self
         }
     }
@@ -375,7 +410,7 @@ mod red_hat_boy_states {
     }
 
     impl RedHatBoyState<Idle> {
-        pub fn new() -> Self {
+        pub fn new(audio: Audio, jump_sound: Sound) -> Self {
             RedHatBoyState {
                 context: RedHatBoyContext {
                     frame: 0,
@@ -384,6 +419,8 @@ mod red_hat_boy_states {
                         y: FLOOR,
                     },
                     velocity: Point { x: 0, y: 0 },
+                    audio,
+                    jump_sound,
                 },
                 _state: Idle,
             }
@@ -460,7 +497,7 @@ mod red_hat_boy_states {
 
         pub fn jump(self) -> RedHatBoyState<Jumping> {
             RedHatBoyState {
-                context: self.context.reset_frame().jump(),
+                context: self.context.reset_frame().jump().play_jump_sound(),
                 _state: Jumping,
             }
         }
@@ -517,7 +554,7 @@ mod red_hat_boy_states {
 
         pub fn stand(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context().reset_frame(),
+                context: self.context().clone().reset_frame(),
                 _state: Running,
             }
         }

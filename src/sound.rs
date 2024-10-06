@@ -22,10 +22,26 @@ fn connect_with_audio_node(
         .map_err(|err| anyhow!("Could not connect audio source to destination {:#?}", err))
 }
 
-pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer) -> Result<()> {
+pub fn create_track_source(
+    ctx: &AudioContext,
+    buffer: &AudioBuffer,
+) -> Result<AudioBufferSourceNode> {
     let track_source = create_buffer_source(ctx)?;
-    track_source.set_buffer(Some(buffer));
+    track_source.set_buffer(Some(&buffer));
     connect_with_audio_node(&track_source, &ctx.destination())?;
+    Ok(track_source)
+}
+
+pub enum Looping {
+    No,
+    Yes,
+}
+
+pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer, looping: Looping) -> Result<()> {
+    let track_source = create_track_source(ctx, buffer)?;
+    if matches!(looping, Looping::Yes) {
+        track_source.set_loop(true);
+    }
     track_source
         .start()
         .map_err(|err| anyhow!("Could not start sound {:#?}", err))
@@ -42,5 +58,5 @@ pub async fn decode_audio_data(
     .await
     .map_err(|err| anyhow!("Could not convert promise to future {:#?}", err))?
     .dyn_into()
-    .map_err(|err| anyhow!("Could not convert into AudioBuffer {:#?}", err))
+    .map_err(|err| anyhow!("Could not convert to AudioBuffer {:#?}", err))
 }
