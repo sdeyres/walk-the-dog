@@ -24,3 +24,4 @@ wasm-bindgen-futures = "0.4.43"
 web-sys = { version = "0.3.70", features = ["AudioBuffer", "AudioBufferSourceNode", "AudioContext", "AudioDestinationNode", "CanvasRenderingContext2d", "Document", "HtmlCanvasElement", "HtmlImageElement", "KeyboardEvent", "Performance", "Response", "Window", "console"] }
 
 [dev-dependencies]
+wasm-bindgen-test = "0.3.43"
