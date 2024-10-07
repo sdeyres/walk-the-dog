@@ -13,7 +13,7 @@ pub use key_state::KeyState;
 pub use point::Point;
 pub use rect::Rect;
 pub use renderer::Renderer;
-pub use sprite_sheet::SpriteSheet;
+pub use sprite_sheet::{Cell, SpriteSheet};
 
 use std::{cell::RefCell, rc::Rc, sync::Mutex};
 

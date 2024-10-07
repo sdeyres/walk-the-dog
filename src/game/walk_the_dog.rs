@@ -75,26 +75,26 @@ impl Game for WalkTheDog {
                 ];
 
                 // Red hat boy
-                let sheet = serde_wasm_bindgen::from_value(
-                    browser::fetch_json("assets/sprite_sheets/rhb_trimmed.json").await?,
-                )
-                .expect("Could not load rhb.json");
-                let image = engine::load_image("assets/sprite_sheets/rhb_trimmed.png").await?;
+                let sprite_sheet = SpriteSheet::new(
+                    "assets/sprite_sheets/rhb_trimmed.json",
+                    "assets/sprite_sheets/rhb_trimmed.png",
+                ).await?;
                 let audio = Audio::new()?;
                 let jump_sound = audio.load_sound("assets/sounds/SFX_Jump_23.mp3").await?;
                 let background_music = audio
                     .load_sound("assets/sounds/background_song.mp3")
                     .await?;
                 audio.play_loop(&background_music);
-                let boy = RedHatBoy::new(sheet, image, audio, jump_sound);
+                let boy = RedHatBoy::new(sprite_sheet, audio, jump_sound);
 
                 // Platform sprite sheet
-                let tiles = serde_wasm_bindgen::from_value(
-                    browser::fetch_json("assets/sprite_sheets/tiles.json").await?,
-                )
-                .expect("Could not load tiles.json");
-                let image = engine::load_image("assets/sprite_sheets/tiles.png").await?;
-                let obstacle_sheet = Rc::new(SpriteSheet::new(tiles, image));
+                let obstacle_sheet = Rc::new(
+                    SpriteSheet::new(
+                        "assets/sprite_sheets/tiles.json",
+                        "assets/sprite_sheets/tiles.png",
+                    )
+                    .await?,
+                );
 
                 // Stone
                 let stone =

@@ -2,34 +2,28 @@ use red_hat_boy_states::{
     Falling, FallingEndState, Idle, Jumping, JumpingEndState, KnockedOut, RedHatBoyContext,
     RedHatBoyState, Running, Sliding, SlidingEndState,
 };
-use web_sys::HtmlImageElement;
 
 use crate::engine::{
     audio::{Audio, Sound},
-    Rect, Renderer,
+    Cell, Rect, Renderer, SpriteSheet,
 };
-
-use super::{Cell, Sheet};
 
 pub struct RedHatBoy {
     state_machine: RedHatBoyStateMachine,
-    sprite_sheet: Sheet,
-    image: HtmlImageElement,
+    sprite_sheet: SpriteSheet,
 }
 
 impl RedHatBoy {
-    pub fn new(sheet: Sheet, image: HtmlImageElement, audio: Audio, jump_sound: Sound) -> Self {
+    pub fn new(sprite_sheet: SpriteSheet, audio: Audio, jump_sound: Sound) -> Self {
         RedHatBoy {
             state_machine: RedHatBoyStateMachine::Idle(RedHatBoyState::new(audio, jump_sound)),
-            sprite_sheet: sheet,
-            image,
+            sprite_sheet,
         }
     }
 
     pub fn reset(boy: Self) -> Self {
         RedHatBoy::new(
             boy.sprite_sheet,
-            boy.image,
             boy.state_machine.context().audio.clone(),
             boy.state_machine.context().jump_sound.clone(),
         )
@@ -42,14 +36,9 @@ impl RedHatBoy {
     pub fn draw(&self, renderer: &Renderer) {
         let sprite = self.sprite().expect("Cell not found");
 
-        renderer.draw_image(
-            &self.image,
-            &Rect::new_from_x_y(
-                sprite.frame.x,
-                sprite.frame.y,
-                sprite.frame.w,
-                sprite.frame.h,
-            ),
+        self.sprite_sheet.draw(
+            renderer,
+            &sprite.frame(),
             &self.destination_box(),
         );
         renderer.draw_rect(&self.bounding_box());
@@ -57,12 +46,7 @@ impl RedHatBoy {
 
     pub fn destination_box(&self) -> Rect {
         let sprite = self.sprite().expect("Cell not found");
-        Rect::new_from_x_y(
-            self.state_machine.context().position.x + sprite.sprite_source_size.x,
-            self.state_machine.context().position.y + sprite.sprite_source_size.y,
-            sprite.frame.w,
-            sprite.frame.h,
-        )
+        sprite.destination(&self.state_machine.context().position)
     }
 
     pub fn bounding_box(&self) -> Rect {
@@ -122,7 +106,7 @@ impl RedHatBoy {
     }
 
     fn sprite(&self) -> Option<&Cell> {
-        self.sprite_sheet.frames.get(&self.frame_name())
+        self.sprite_sheet.cell(&self.frame_name())
     }
 }
 

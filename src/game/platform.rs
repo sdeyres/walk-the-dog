@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use crate::engine::{Point, Rect, Renderer, SpriteSheet};
+use crate::engine::{Cell, Point, Rect, Renderer, SpriteSheet};
 
-use super::{obstacle::Obstacle, Cell};
+use super::{Obstacle, RedHatBoy};
 
 pub struct Platform {
     bounding_boxes: Vec<Rect>,
@@ -47,7 +47,7 @@ impl Platform {
 }
 
 impl Obstacle for Platform {
-    fn check_intersection(&self, boy: &mut super::redhatboy::RedHatBoy) {
+    fn check_intersection(&self, boy: &mut RedHatBoy) {
         if let Some(box_to_land_on) = self
             .bounding_boxes()
             .iter()
@@ -67,20 +67,13 @@ impl Obstacle for Platform {
         self.sprites.iter().for_each(|sprite| {
             self.sheet.draw(
                 renderer,
-                &Rect::new_from_x_y(
-                    sprite.frame.x,
-                    sprite.frame.y,
-                    sprite.frame.w,
-                    sprite.frame.h,
-                ),
-                &Rect::new_from_x_y(
-                    self.position.x + dx,
-                    self.position.y,
-                    sprite.frame.w,
-                    sprite.frame.h,
-                ),
+                &sprite.frame(),
+                &sprite.destination(&Point {
+                    x: self.position.x + dx,
+                    y: self.position.y,
+                }),
             );
-            dx += sprite.frame.w;
+            dx += sprite.frame().width;
         });
 
         for rect in self.bounding_boxes() {

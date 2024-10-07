@@ -4,14 +4,13 @@ mod platform;
 mod redhatboy;
 mod walk_the_dog;
 
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 pub use barrier::Barrier;
 pub use obstacle::Obstacle;
 pub use platform::Platform;
 use rand::{prelude::*, Rng};
-use redhatboy::RedHatBoy;
-use serde::Deserialize;
+pub use redhatboy::RedHatBoy;
 pub use walk_the_dog::WalkTheDog;
 use web_sys::HtmlImageElement;
 
@@ -22,27 +21,6 @@ use crate::{
 
 const WIDTH: i16 = 600;
 const HEIGHT: i16 = 600;
-
-#[derive(Clone, Deserialize)]
-pub struct SheetRect {
-    x: i16,
-    y: i16,
-    w: i16,
-    h: i16,
-}
-
-#[derive(Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Cell {
-    frame: SheetRect,
-    sprite_source_size: SheetRect,
-}
-
-#[derive(Clone, Deserialize)]
-pub struct Sheet {
-    pub frames: HashMap<String, Cell>,
-}
-
 const OBSTACLE_BUFFER: i16 = 20;
 
 pub struct Walk {
