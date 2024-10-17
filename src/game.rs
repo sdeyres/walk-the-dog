@@ -6,6 +6,7 @@ mod walk_the_dog;
 
 use std::rc::Rc;
 
+use anyhow::Result;
 pub use barrier::Barrier;
 pub use obstacle::Obstacle;
 pub use platform::Platform;
@@ -33,14 +34,16 @@ pub struct Walk {
 }
 
 impl Walk {
-    fn draw(&self, renderer: &Renderer) {
+    fn draw(&self, renderer: &Renderer) -> Result<()> {
         self.backgrounds
             .iter()
-            .for_each(|background| background.draw(renderer));
-        self.boy.draw(renderer);
+            .try_for_each(|background| -> Result<()> {
+                background.draw(renderer)
+            })?;
+        self.boy.draw(renderer)?;
         self.obstacles
             .iter()
-            .for_each(|obstacle| obstacle.draw(renderer));
+            .try_for_each(|obstacle| -> Result<()> { obstacle.draw(renderer) })
     }
 
     fn knocked_out(&self) -> bool {

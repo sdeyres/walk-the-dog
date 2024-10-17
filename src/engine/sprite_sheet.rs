@@ -60,7 +60,7 @@ impl SpriteSheet {
         self.sheet.frames.get(name)
     }
 
-    pub fn draw(&self, renderer: &Renderer, source: &Rect, destination: &Rect) {
-        renderer.draw_image(&self.image, source, destination);
+    pub fn draw(&self, renderer: &Renderer, source: &Rect, destination: &Rect) -> Result<()> {
+        renderer.draw_image(&self.image, source, destination)
     }
 }

@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use anyhow::Result;
+
 use crate::engine::{Cell, Point, Rect, Renderer, SpriteSheet};
 
 use super::{Obstacle, RedHatBoy};
@@ -61,10 +63,10 @@ impl Obstacle for Platform {
         }
     }
 
-    fn draw(&self, renderer: &Renderer) {
+    fn draw(&self, renderer: &Renderer) -> Result<()> {
         let mut dx = 0;
 
-        self.sprites.iter().for_each(|sprite| {
+        self.sprites.iter().try_for_each(|sprite| -> Result<()> {
             self.sheet.draw(
                 renderer,
                 &sprite.frame(),
@@ -72,13 +74,16 @@ impl Obstacle for Platform {
                     x: self.position.x + dx,
                     y: self.position.y,
                 }),
-            );
+            )?;
             dx += sprite.frame().width;
-        });
+            Ok(())
+        })?;
 
         for rect in self.bounding_boxes() {
             renderer.draw_rect(rect);
         }
+
+        Ok(())
     }
 
     fn move_horizontally(&mut self, dx: i16) {

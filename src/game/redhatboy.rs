@@ -1,3 +1,4 @@
+use anyhow::Result;
 use red_hat_boy_states::{
     Falling, FallingEndState, Idle, Jumping, JumpingEndState, KnockedOut, RedHatBoyContext,
     RedHatBoyState, Running, Sliding, SlidingEndState,
@@ -33,15 +34,16 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.clone().update();
     }
 
-    pub fn draw(&self, renderer: &Renderer) {
+    pub fn draw(&self, renderer: &Renderer) -> Result<()> {
         let sprite = self.sprite().expect("Cell not found");
 
         self.sprite_sheet.draw(
             renderer,
             &sprite.frame(),
             &self.destination_box(),
-        );
+        )?;
         renderer.draw_rect(&self.bounding_box());
+        Ok(())
     }
 
     pub fn destination_box(&self) -> Rect {

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use web_sys::HtmlImageElement;
 
 use super::{Point, Rect, Renderer};
@@ -16,9 +17,9 @@ impl Image {
         }
     }
 
-    pub fn draw(&self, renderer: &Renderer) {
-        renderer.draw_entire_image(&self.element, &self.bounding_box.position);
+    pub fn draw(&self, renderer: &Renderer) -> Result<()> {
         renderer.draw_rect(&self.bounding_box);
+        renderer.draw_entire_image(&self.element, &self.bounding_box.position)
     }
 
     pub fn bounding_box(&self) -> &Rect {

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 use futures::channel::mpsc::UnboundedReceiver;
 
 use crate::{
@@ -78,7 +78,8 @@ impl Game for WalkTheDog {
                 let sprite_sheet = SpriteSheet::new(
                     "assets/sprite_sheets/rhb_trimmed.json",
                     "assets/sprite_sheets/rhb_trimmed.png",
-                ).await?;
+                )
+                .await?;
                 let audio = Audio::new()?;
                 let jump_sound = audio.load_sound("assets/sounds/SFX_Jump_23.mp3").await?;
                 let background_music = audio
@@ -132,12 +133,14 @@ impl Game for WalkTheDog {
         assert!(self.machine.is_some());
     }
 
-    fn draw(&self, renderer: &engine::Renderer) {
+    fn draw(&self, renderer: &engine::Renderer) -> Result<()> {
         renderer.clear(&Rect::new(Point { x: 0, y: 0 }, WIDTH, HEIGHT));
 
         if let Some(machine) = &self.machine {
-            machine.draw(renderer);
+            machine.draw(renderer)?;
         }
+
+        Ok(())
     }
 }
 
@@ -154,7 +157,7 @@ impl WalkTheDogStateMachine {
         }
     }
 
-    fn draw(&self, renderer: &Renderer) {
+    fn draw(&self, renderer: &Renderer) -> Result<()> {
         match self {
             WalkTheDogStateMachine::Ready(state) => state.draw(renderer),
             WalkTheDogStateMachine::Walking(state) => state.draw(renderer),
@@ -180,8 +183,8 @@ impl WalkTheDogState<Ready> {
         }
     }
 
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer);
+    fn draw(&self, renderer: &Renderer) -> Result<()> {
+        self.walk.draw(renderer)
     }
 
     fn start_running(mut self) -> WalkTheDogState<Walking> {
@@ -241,8 +244,8 @@ impl WalkTheDogState<Walking> {
         }
     }
 
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer);
+    fn draw(&self, renderer: &Renderer) -> Result<()> {
+        self.walk.draw(renderer)
     }
 
     fn end_game(self) -> WalkTheDogState<GameOver> {
@@ -268,8 +271,8 @@ impl WalkTheDogState<GameOver> {
         }
     }
 
-    fn draw(&self, renderer: &Renderer) {
-        self.walk.draw(renderer);
+    fn draw(&self, renderer: &Renderer) -> Result<()> {
+        self.walk.draw(renderer)
     }
 
     fn new_game(self) -> WalkTheDogState<Ready> {

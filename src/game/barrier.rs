@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 use crate::engine::Image;
 
 use super::obstacle::Obstacle;
@@ -19,8 +21,8 @@ impl Obstacle for Barrier {
         }
     }
 
-    fn draw(&self, renderer: &crate::engine::Renderer) {
-        self.image.draw(renderer);
+    fn draw(&self, renderer: &crate::engine::Renderer) -> Result<()> {
+        self.image.draw(renderer)
     }
 
     fn move_horizontally(&mut self, dx: i16) {

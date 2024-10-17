@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 use super::{Point, Rect};
@@ -20,7 +21,7 @@ impl Renderer {
         );
     }
 
-    pub fn draw_image(&self, image: &HtmlImageElement, frame: &Rect, destination: &Rect) {
+    pub fn draw_image(&self, image: &HtmlImageElement, frame: &Rect, destination: &Rect) -> Result<()> {
         self.context
             .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 image,
@@ -33,15 +34,16 @@ impl Renderer {
                 destination.width.into(),
                 destination.height.into(),
             )
-            .expect("Drawing is throwing exceptions! Unrecoverable error");
+            .map_err(|err| anyhow!("Could not draw image {:#?}", err))
     }
 
-    pub fn draw_entire_image(&self, image: &HtmlImageElement, position: &Point) {
+    pub fn draw_entire_image(&self, image: &HtmlImageElement, position: &Point) -> Result<()> {
         self.context
             .draw_image_with_html_image_element(image, position.x.into(), position.y.into())
-            .expect("Drawing is throwing exceptions! Unrecoverable error");
+            .map_err(|err| anyhow!("Could not draw entire image {:#?}", err))
     }
 
+    #[allow(dead_code)]
     pub fn draw_rect(&self, rect: &Rect) {
         self.context.stroke_rect(
             rect.x().into(),
