@@ -74,4 +74,22 @@ mod tests {
         assert!(rect.intersects(&other));
         assert!(other.intersects(&rect));
     }
+
+    #[test]
+    fn two_rects_that_do_not_intersect() {
+        let rect = Rect {
+            position: Point { x: 0, y: 0 },
+            width: 5,
+            height: 5,
+        };
+
+        let other = Rect {
+            position: Point { x: 10, y: 10 },
+            width: 5,
+            height: 5,
+        };
+
+        assert!(!rect.intersects(&other));
+        assert!(!other.intersects(&rect));
+    }
 }

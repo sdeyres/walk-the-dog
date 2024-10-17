@@ -51,7 +51,7 @@ struct Sheet {
 impl SpriteSheet {
     pub async fn new(json_resource: &str, image_resource: &str) -> Result<Self> {
         let sheet = serde_wasm_bindgen::from_value(browser::fetch_json(json_resource).await?)
-            .expect(&format!("Could not load JSON resource {}", json_resource));
+            .unwrap_or_else(|_| panic!("Could not load JSON resource {}", json_resource));
         let image = super::load_image(image_resource).await?;
         Ok(SpriteSheet { sheet, image })
     }

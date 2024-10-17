@@ -43,7 +43,9 @@ impl GameLoop {
             game_loop.last_frame = perf;
             game.draw(&renderer);
 
-            browser::request_animation_frame(f.borrow().as_ref().unwrap());
+            if let Err(err) = browser::request_animation_frame(f.borrow().as_ref().unwrap()) {
+                error!("Unable to request animation frame: {:#?}", err);
+            }
         }));
 
         browser::request_animation_frame(

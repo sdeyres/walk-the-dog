@@ -21,7 +21,7 @@ serde = { version = "1.0.210", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = "0.2.93"
 wasm-bindgen-futures = "0.4.43"
-web-sys = { version = "0.3.70", features = ["AudioBuffer", "AudioBufferSourceNode", "AudioContext", "AudioDestinationNode", "CanvasRenderingContext2d", "Document", "HtmlCanvasElement", "HtmlImageElement", "KeyboardEvent", "Performance", "Response", "Window", "console"] }
+web-sys = { version = "0.3.70", features = ["AudioBuffer", "AudioBufferOptions", "AudioBufferSourceNode", "AudioContext", "AudioDestinationNode", "CanvasRenderingContext2d", "Document", "HtmlCanvasElement", "HtmlImageElement", "KeyboardEvent", "Performance", "Response", "Window", "console"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.43"

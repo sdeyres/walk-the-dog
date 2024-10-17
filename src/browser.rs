@@ -18,6 +18,12 @@ macro_rules! log {
     };
 }
 
+macro_rules! error {
+    ( $ ( $t:tt)* ) => {
+        web_sys::console::error_1(&format!( $( $t )* ).into())
+    };
+}
+
 pub fn window() -> Result<Window> {
     web_sys::window().ok_or_else(|| anyhow!("No window found"))
 }
@@ -174,5 +180,20 @@ pub fn hide_ui() -> Result<()> {
             })
     } else {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use wasm_bindgen_test::wasm_bindgen_test;
+
+    use super::*;
+
+    wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
+    #[wasm_bindgen_test]
+    async fn test_error_loading_json() {
+        let json = fetch_json("not_here.json").await;
+        assert!(json.is_err());
     }
 }

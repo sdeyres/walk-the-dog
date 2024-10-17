@@ -21,6 +21,6 @@ impl KeyState {
     }
 
     pub fn set_released(&mut self, code: &str) {
-        self.pressed_keys.remove(code.into());
+        self.pressed_keys.remove(code);
     }
 }

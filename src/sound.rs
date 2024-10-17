@@ -27,7 +27,7 @@ pub fn create_track_source(
     buffer: &AudioBuffer,
 ) -> Result<AudioBufferSourceNode> {
     let track_source = create_buffer_source(ctx)?;
-    track_source.set_buffer(Some(&buffer));
+    track_source.set_buffer(Some(buffer));
     connect_with_audio_node(&track_source, &ctx.destination())?;
     Ok(track_source)
 }
@@ -52,7 +52,7 @@ pub async fn decode_audio_data(
     array_buffer: &ArrayBuffer,
 ) -> Result<AudioBuffer> {
     JsFuture::from(
-        ctx.decode_audio_data(&array_buffer)
+        ctx.decode_audio_data(array_buffer)
             .map_err(|err| anyhow!("Could not decode audio from array buffer {:#?}", err))?,
     )
     .await

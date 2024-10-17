@@ -84,7 +84,9 @@ impl Game for WalkTheDog {
                 let background_music = audio
                     .load_sound("assets/sounds/background_song.mp3")
                     .await?;
-                audio.play_loop(&background_music);
+                if let Err(err) = audio.play_loop(&background_music) {
+                    error!("Error starting the audio loop {:#?}", err);
+                }
                 let boy = RedHatBoy::new(sprite_sheet, audio, jump_sound);
 
                 // Platform sprite sheet
@@ -164,7 +166,7 @@ impl WalkTheDogStateMachine {
 impl WalkTheDogState<Ready> {
     fn new(walk: Walk) -> WalkTheDogState<Ready> {
         WalkTheDogState {
-            walk: walk,
+            walk,
             _state: Ready,
         }
     }
@@ -246,7 +248,7 @@ impl WalkTheDogState<Walking> {
     fn end_game(self) -> WalkTheDogState<GameOver> {
         let receiver = browser::draw_ui("<button id=\"new_game\">New game</button>")
             .and_then(|_unit| browser::find_html_element_by_id("new_game"))
-            .map(|element| engine::add_click_handler(element))
+            .map(engine::add_click_handler)
             .unwrap();
         WalkTheDogState {
             walk: self.walk,
@@ -271,7 +273,9 @@ impl WalkTheDogState<GameOver> {
     }
 
     fn new_game(self) -> WalkTheDogState<Ready> {
-        browser::hide_ui();
+        if let Err(err) = browser::hide_ui() {
+            error!("Error hiding the browser {:#?}", err);
+        }
         WalkTheDogState {
             walk: Walk::reset(self.walk),
             _state: Ready,

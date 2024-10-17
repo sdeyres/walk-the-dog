@@ -37,12 +37,22 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
     let error_tx = Rc::clone(&success_tx);
     let success_callback = browser::closure_once(move || {
         if let Some(success_tx) = success_tx.lock().ok().and_then(|mut opt| opt.take()) {
-            success_tx.send(Ok(()));
+            if let Err(err) = success_tx.send(Ok(())) {
+                error!(
+                    "Unable to send success message after loading image {:#?}",
+                    err
+                );
+            }
         }
     });
     let error_callback: Closure<dyn FnMut(JsValue)> = browser::closure_once(move |err| {
         if let Some(error_tx) = error_tx.lock().ok().and_then(|mut opt| opt.take()) {
-            error_tx.send(Err(anyhow!("Error loading image: {:#?}", err)));
+            if let Err(err) = error_tx.send(Err(anyhow!("Error loading image: {:#?}", err))) {
+                error!(
+                    "Unable to send error message after trying to load image {:#?}",
+                    err
+                );
+            }
         }
     });
 
@@ -66,15 +76,21 @@ fn prepare_input() -> Result<UnboundedReceiver<KeyPress>> {
     let keydown_sender = Rc::clone(&keyup_sender);
 
     let onkeydown = browser::closure_wrap(Box::new(move |keycode: web_sys::KeyboardEvent| {
-        keydown_sender
+        if let Err(err) = keydown_sender
             .borrow_mut()
-            .start_send(KeyPress::KeyDown(keycode));
+            .start_send(KeyPress::KeyDown(keycode))
+        {
+            error!("Could not send key down event {:#?}", err);
+        }
     }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 
     let onkeyup = browser::closure_wrap(Box::new(move |keycode: web_sys::KeyboardEvent| {
-        keyup_sender
+        if let Err(err) = keyup_sender
             .borrow_mut()
-            .start_send(KeyPress::KeyUp(keycode));
+            .start_send(KeyPress::KeyUp(keycode))
+        {
+            error!("Could not send key up event {:#?}", err);
+        }
     }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
 
     browser::canvas()
@@ -105,7 +121,9 @@ fn process_input(state: &mut KeyState, keyevent_receiver: &mut UnboundedReceiver
 pub fn add_click_handler(elem: HtmlElement) -> UnboundedReceiver<()> {
     let (mut click_sender, click_receiver) = unbounded();
     let on_click = browser::closure_wrap(Box::new(move || {
-        click_sender.start_send(());
+        if let Err(err) = click_sender.start_send(()) {
+            error!("Could not send click event {:#?}", err);
+        }
     }) as Box<dyn FnMut()>);
     elem.set_onclick(Some(on_click.as_ref().unchecked_ref()));
     on_click.forget();
