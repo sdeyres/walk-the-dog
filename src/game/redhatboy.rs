@@ -37,13 +37,11 @@ impl RedHatBoy {
     pub fn draw(&self, renderer: &Renderer) -> Result<()> {
         let sprite = self.sprite().expect("Cell not found");
 
-        self.sprite_sheet.draw(
-            renderer,
-            &sprite.frame(),
-            &self.destination_box(),
-        )?;
-        renderer.draw_rect(&self.bounding_box());
-        Ok(())
+        if cfg!(debug_assertions) {
+            renderer.draw_rect(&self.bounding_box());
+        }
+        self.sprite_sheet
+            .draw(renderer, &sprite.frame(), &self.destination_box())
     }
 
     pub fn destination_box(&self) -> Rect {

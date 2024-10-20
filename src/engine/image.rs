@@ -18,7 +18,9 @@ impl Image {
     }
 
     pub fn draw(&self, renderer: &Renderer) -> Result<()> {
-        renderer.draw_rect(&self.bounding_box);
+        if cfg!(debug_assertions) {
+            renderer.draw_rect(&self.bounding_box);
+        }
         renderer.draw_entire_image(&self.element, &self.bounding_box.position)
     }
 

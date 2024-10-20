@@ -79,8 +79,10 @@ impl Obstacle for Platform {
             Ok(())
         })?;
 
-        for rect in self.bounding_boxes() {
-            renderer.draw_rect(rect);
+        if cfg!(debug_assertions) {
+            for rect in self.bounding_boxes() {
+                renderer.draw_rect(rect);
+            }
         }
 
         Ok(())

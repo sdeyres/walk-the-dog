@@ -94,7 +94,7 @@ impl Walk {
 
 const TIMELINE_MINIMUM: i16 = 1000;
 
-fn rightmost(obstacle_list: &Vec<Box<dyn Obstacle>>) -> i16 {
+fn rightmost(obstacle_list: &[Box<dyn Obstacle>]) -> i16 {
     obstacle_list
         .iter()
         .map(|obstacle| obstacle.right())

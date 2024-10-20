@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 
 use crate::browser::{self, LoopClosure};
 
-use super::{prepare_input, process_input, KeyState, Renderer, FRAME_SIZE};
+use super::{draw_frame_rate, prepare_input, process_input, KeyState, Renderer, FRAME_SIZE};
 
 pub trait Game {
     async fn initialize(&self) -> Result<Box<impl Game + 'static>>;
@@ -35,7 +35,8 @@ impl GameLoop {
         let g = Rc::clone(&f);
         *g.borrow_mut() = Some(browser::create_raf_closure(move |perf| {
             process_input(&mut keystate, &mut keyevent_receiver);
-            game_loop.accumulated_delta += (perf - game_loop.last_frame) as f32;
+            let frame_time = perf - game_loop.last_frame;
+            game_loop.accumulated_delta += frame_time as f32;
             while game_loop.accumulated_delta > FRAME_SIZE {
                 game.update(&keystate);
                 game_loop.accumulated_delta -= FRAME_SIZE;
@@ -43,6 +44,12 @@ impl GameLoop {
             game_loop.last_frame = perf;
             if let Err(err) = game.draw(&renderer) {
                 error!("Error while drawing the game: {:#?}", err);
+            }
+
+            if cfg!(debug_assertions) {
+                unsafe {
+                    draw_frame_rate(&renderer, frame_time);
+                }
             }
 
             if let Err(err) = browser::request_animation_frame(f.borrow().as_ref().unwrap()) {
